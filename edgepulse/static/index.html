@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0b1116"><title>EdgePulse · 设备观测台</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2370efbb'/%3E%3Cpath d='M5 17h6l3-8 5 16 3-8h5' fill='none' stroke='%230b1116' stroke-width='2.5'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/style.css"><script src="/static/app.js" defer></script>
+</head>
+<body>
+<aside class="sidebar">
+  <a class="brand" href="/" aria-label="EdgePulse 首页"><span class="brand-mark">⌁</span><span>EdgePulse<small>EDGE OBSERVABILITY</small></span></a>
+  <div class="workspace"><span class="workspace-icon">E</span><span>本地实验空间<small>设备可靠性实验室</small></span><span class="local-tag">LOCAL</span></div>
+  <div class="nav-label">工作空间</div>
+  <nav aria-label="主导航">
+    <button class="nav-item active" data-view="overview"><span>◫</span> 实时总览 <i class="live-dot"></i></button>
+    <button class="nav-item" data-view="replay"><span>◷</span> 历史回放</button>
+    <a class="nav-item" href="/docs" target="_blank" rel="noreferrer"><span>⌘</span> 接口文档 <span class="external">↗</span></a>
+  </nav>
+  <div class="sidebar-note"><span class="small-dot"></span> 可靠性，从每个数据点开始<p>先持久化，再传输。<br>让设备状态有迹可循。</p><div class="pipeline-mini">EDGE <span>→</span> STORE <span>→</span> INSIGHT</div></div>
+  <button id="settings" class="settings">⚙ <span>连接设置</span><span>v0.1</span></button>
+</aside>
+<main>
+  <header class="topbar"><div class="breadcrumb">工作空间 <span>/</span> <strong id="page-name">实时总览</strong></div><div class="connection"><span id="connection-dot" class="small-dot muted-dot"></span><span id="connection-text">正在连接</span><span class="separator"></span><time id="clock">--:--:--</time></div></header>
+  <div class="page">
+    <section class="page-heading"><div><div class="eyebrow">OBSERVE. UNDERSTAND. RECOVER.</div><h1 id="page-title">让设备状态，一目了然<span class="title-dot">.</span></h1><p id="page-subtitle">从实时遥测到故障恢复，追踪每一个关键变化。</p></div><button class="button secondary" id="export">↓ 导出数据</button></section>
+    <section class="demo-bar" aria-label="故障实验控制"><div class="demo-caption"><span class="flask">⚗</span><div><strong>故障实验室</strong><small>模拟数据 · 目标 demo-pump-01</small></div></div><span id="demo-state" class="pill neutral">未启动</span><div class="demo-controls"><button id="demo-toggle" class="button mint">▶ 启动演示</button><label class="sr-only" for="scenario">故障场景</label><select id="scenario"><option value="normal">正常运行</option><option value="overheat">注入过热故障</option><option value="vibration">注入振动故障</option><option value="offline">模拟设备断联</option></select><button id="apply-scenario" class="button secondary" disabled>应用场景 ↗</button></div></section>
+    <section class="stats" aria-label="系统统计">
+      <article class="stat"><div class="stat-label">在线设备 <span>◉</span></div><div class="stat-number"><span id="stat-online">0</span><small>/ <span id="stat-total">0</span></small></div><div class="stat-foot"><span class="small-dot"></span><span>5 秒无新数据标记离线</span></div></article>
+      <article class="stat"><div class="stat-label">待恢复告警 <span class="amber">△</span></div><div class="stat-number" id="stat-alerts">0</div><div class="stat-foot"><span class="small-dot amber-bg"></span><span>连续 3 点越限触发</span></div></article>
+      <article class="stat"><div class="stat-label">累计入库样本 <span>↧</span></div><div class="stat-number" id="stat-accepted">0</div><div class="stat-foot"><span class="mono">WAL</span><span>样本与告警原子提交</span></div></article>
+      <article class="stat"><div class="stat-label">拦截重复上报 <span>◇</span></div><div class="stat-number" id="stat-duplicates">0</div><div class="stat-foot"><span class="mono">IDEMPOTENT</span><span>安全重试</span></div></article>
+    </section>
+    <div id="overview-view">
+      <div class="main-grid">
+        <section class="panel trend-panel"><div class="panel-heading"><div><h2>遥测趋势 <span id="selected-badge" class="badge">等待设备</span></h2><p>最近 120 个样本 · 实际事件时间</p></div><div class="metric-tabs" role="group" aria-label="趋势指标"><button class="active" data-metric="temperature">温度</button><button data-metric="vibration">振动</button><button data-metric="current">电流</button></div></div><div class="chart-reading"><strong id="metric-value">—</strong><span id="metric-unit">°C</span><span id="metric-description" class="chart-caption">等待遥测数据</span></div><div class="chart-wrap"><svg id="live-chart" viewBox="0 0 760 210" role="img" aria-label="设备遥测趋势图"></svg><div id="chart-empty" class="empty-overlay">启动演示或连接设备，查看实时趋势</div></div><div class="chart-legend"><span><i class="legend-line mint-bg"></i> <span id="legend-metric">温度</span></span><span><i class="legend-line threshold-line"></i> 告警阈值</span><span id="stream-label" class="stream-label">○ 等待数据流</span></div></section>
+        <section class="panel health-panel"><div class="panel-heading"><div><h2>传输与一致性</h2><p>每一次上报，都可追踪</p></div><span class="outlined-icon">⇄</span></div><div class="integrity-visual"><div class="orbit"><span class="orbit-dot"></span><div class="orbit-inner"><span>持久化接收</span><strong id="integrity-total">0</strong><small>UNIQUE SAMPLES</small></div></div></div><div class="health-row"><span>迟到样本</span><strong id="stat-late">0</strong></div><div class="health-row"><span>观测到的序号缺口</span><strong id="stat-gaps">0</strong></div><p class="health-note">迟到样本保留在历史中，不覆盖当前状态。序号缺口不等同于最终丢包量。</p></section>
+      </div>
+      <section class="panel fleet-panel"><div class="panel-heading"><div><h2>设备舰队 <span class="badge" id="fleet-count">0 个节点</span></h2><p>选择一个设备，查看它的实时遥测</p></div><span class="micro-label">LIVE INVENTORY</span></div><div class="table-scroll"><table><thead><tr><th>设备 / 节点</th><th>状态</th><th>温度</th><th>振动</th><th>电流</th><th>最近上报</th><th></th></tr></thead><tbody id="devices-body"><tr><td colspan="7" class="empty-cell">尚无设备。点击「启动演示」生成四个模拟节点。</td></tr></tbody></table></div></section>
+      <section class="panel alerts-panel"><div class="panel-heading"><div><h2>告警事件 <span class="badge" id="alert-count">0 条</span></h2><p>确认告警后，仍需指标恢复才会关闭</p></div><span class="micro-label">INCIDENT TIMELINE</span></div><div id="alerts-list" class="alerts-list"><div class="empty-alert"><span>✓</span><strong>暂无告警事件</strong><p>在故障实验室注入异常，观察触发与恢复过程。</p></div></div></section>
+    </div>
+    <section id="replay-view" class="panel replay-panel" hidden><div class="panel-heading"><div><h2>历史时间机器</h2><p>回放已存储的数据，复盘异常发生的过程</p></div><div class="replay-select"><label for="replay-device">设备</label><select id="replay-device"></select><button id="load-replay" class="button secondary">加载历史</button></div></div><div class="replay-summary"><div><span>事件时间</span><strong id="replay-time">—</strong></div><div><span>温度 / °C</span><strong id="replay-temperature">—</strong></div><div><span>振动 / mm/s</span><strong id="replay-vibration">—</strong></div><div><span>电流 / A</span><strong id="replay-current">—</strong></div></div><svg id="replay-chart" viewBox="0 0 1000 270" role="img" aria-label="历史温度回放"></svg><div class="replay-controls"><button id="play-replay" class="button mint" disabled>▶ 播放</button><label for="replay-position" class="sr-only">回放进度</label><input id="replay-position" type="range" min="0" max="0" value="0" disabled><span id="replay-progress">0 / 0</span><span class="muted">5 点 / 秒</span></div><p class="replay-note" id="replay-note">选择设备并加载历史。最多加载最近 2,000 条已存样本。</p></section>
+    <footer><span><i class="small-dot"></i> EdgePulse · 设备观测与可靠性实验平台</span><span>本地存储 <b>·</b> 无云端依赖 <b>·</b> 模拟数据非实物验证</span></footer>
+  </div>
+</main>
+<dialog id="token-dialog"><form id="token-form"><div class="eyebrow">CONNECTION SETTINGS</div><h2>连接到你的观测空间</h2><p>如服务端设置了 EDGEPULSE_TOKEN，请输入相同令牌。仅在当前页面内存中使用。</p><label for="api-token">API 访问令牌</label><input id="api-token" type="password" autocomplete="off" placeholder="本地未启用认证时留空"><div class="dialog-buttons"><button type="button" id="close-settings" class="button secondary">取消</button><button type="submit" class="button mint">连接</button></div></form></dialog>
+<div id="toast" role="status" hidden></div>
+</body></html>

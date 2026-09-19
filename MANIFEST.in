@@ -1,0 +1,4 @@
+include requirements.lock start.cmd Dockerfile compose.yaml .env.example
+recursive-include docs *.md *.json *.png
+recursive-include scripts *.py *.cjs
+recursive-include edgepulse/static *.html *.css *.js

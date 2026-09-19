@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edgepulse"
+version = "0.1.0"
+description = "Durable device telemetry, fault injection and alert lifecycle laboratory"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["fastapi>=0.115,<1", "uvicorn[standard]>=0.30,<1", "httpx>=0.27,<1"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<10", "build>=1,<2"]
+
+[project.scripts]
+edgepulse = "edgepulse.cli:main"
+
+[tool.setuptools.package-data]
+edgepulse = ["static/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.setuptools.packages.find]
+include = ["edgepulse*"]

@@ -1,0 +1,12 @@
+services:
+  edgepulse:
+    build: .
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      EDGEPULSE_TOKEN: ${EDGEPULSE_TOKEN:?Set EDGEPULSE_TOKEN in your shell or .env}
+    volumes:
+      - telemetry:/app/data
+    restart: unless-stopped
+volumes:
+  telemetry:
