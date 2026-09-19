@@ -99,3 +99,9 @@ def test_gap_counter_counts_forward_holes_only(store):
 def test_ewma_smooths_live_temperature(store):
     store.ingest([point(0, temperature=40), point(1, temperature=60)])
     assert store.snapshot()["devices"][0]["temperature_ewma"] == 44
+
+
+def test_dense_event_window_can_fetch_first_samples_after_event(store):
+    store.ingest([point(i, ts=1700000000000+i*20) for i in range(2500)])
+    rows = store.history("pump-01", from_ts=1700000002000, limit=30, earliest=True)
+    assert [r["seq"] for r in rows] == list(range(100, 130))

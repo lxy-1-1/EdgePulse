@@ -73,6 +73,15 @@ def test_unknown_alert_returns_not_found(client):
     assert client.post("/api/alerts/999/ack").status_code == 404
 
 
+def test_history_earliest_anchor_keeps_event_following_samples(client):
+    data = payload()
+    start = data["samples"][0]["ts"] - 10000
+    data["samples"] = [dict(data["samples"][0], seq=i, ts=start+i*20) for i in range(10)]
+    client.post("/api/ingest", json=data)
+    result = client.get(f"/api/history/sensor-01?from_ts={start+40}&limit=3&earliest=true")
+    assert [row["seq"] for row in result.json()] == [2, 3, 4]
+
+
 def test_demo_start_fault_and_stop(client):
     assert client.post("/api/demo", json={"action": "start"}).json()["running"]
     assert client.post("/api/demo", json={"action": "overheat"}).json()["scenario"] == "overheat"

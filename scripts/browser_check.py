@@ -61,6 +61,26 @@ def main():
                     page.locator("#apply-scenario").click()
                     expect(page.locator("#stat-alerts")).to_have_text("1", timeout=12000)
                     expect(page.locator("#alerts-list")).to_contain_text("温度过高")
+                    expect(page.locator("#chart-vibration")).to_be_visible()
+                    expect(page.locator("#chart-current")).to_be_visible()
+                    page.locator("#device-search").fill("motor")
+                    expect(page.locator("#devices-body [data-device]")).to_have_count(1)
+                    page.locator('#devices-body [data-device="demo-motor-02"]').click()
+                    expect(page.locator("#selected-badge")).to_have_text("demo-motor-02")
+                    expect(page.locator("#alerts-list")).to_contain_text("当前设备暂无告警")
+                    page.locator("#device-search").fill("")
+                    page.locator('#devices-body [data-device="demo-pump-01"]').click()
+                    expect(page.locator("#alerts-list")).to_contain_text("温度过高")
+                    page.locator("#window-size").select_option("30")
+                    page.locator("[data-focus]").first.click()
+                    expect(page.locator("#inspection-time")).not_to_have_text("跟随最新样本")
+                    expect(page.locator("#live-chart .event-marker").first).to_be_visible()
+                    page.locator("#clear-focus").click()
+                    page.locator("#freeze-chart").click()
+                    frozen_end = page.locator("#live-chart").get_attribute("data-end")
+                    page.wait_for_timeout(2200)
+                    assert page.locator("#live-chart").get_attribute("data-end") == frozen_end
+                    page.locator("#freeze-chart").click()
                     page.locator("#toast").wait_for(state="hidden", timeout=8000)
                     page.screenshot(path=str(artifacts / "overview.png"), full_page=True)
                     page.get_by_role("button", name="确认告警", exact=True).click()
@@ -98,7 +118,7 @@ def main():
                     assert not errors, errors
                     browser.close()
                 print(json.dumps({"passed": True, "browser": args.channel,
-                                  "checks": ["websocket", "demo", "overheat", "acknowledge", "recovery", "replay", "seek", "csv", "offline", "mobile", "stop"],
+                                  "checks": ["websocket", "demo", "device-search", "device-selection", "three-signals", "event-focus", "freeze", "overheat", "acknowledge", "recovery", "replay", "seek", "csv", "offline", "mobile", "stop"],
                                   "javascript_errors": errors}, ensure_ascii=False))
             finally:
                 server.should_exit = True

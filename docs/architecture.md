@@ -2,7 +2,7 @@
 
 ## 选择与边界
 
-HTTP JSON 便于验证异常路径，并对接不同语言客户端。SQLite 消除独立数据库部署成本；WAL 适用于本地单实例网关，但仍为单写者。WebSocket 每秒推送快照，断线按 1/2/4/8/10 秒重连；趋势每 2 秒查询最近 120 点。这不是逐事件消息总线，快照之间的采样点仍保存在历史中。请使用单进程、单 worker。
+HTTP JSON 便于验证异常路径，并对接不同语言客户端。SQLite 消除独立数据库部署成本；WAL 适用于本地单实例网关，但仍为单写者。WebSocket 每秒推送快照，断线按 1/2/4/8/10 秒重连。工作台每 2 秒获取最多 600 点，按选择显示最近 30/60/120 点；冻结或固定游标时停止更新曲线。快照之间的采样点仍保存在历史中。请使用单进程、单 worker。
 
 | 表 | 作用 | 约束 |
 |---|---|---|
@@ -63,7 +63,7 @@ stateDiagram-v2
 | GET /health | 最小健康响应，无业务数据 |
 | POST /api/ingest | 批量上报 |
 | GET /api/snapshot | 设备、告警、统计、模拟器和阈值 |
-| GET /api/history/{device_id} | from_ts/to_ts 含边界，limit 1–10000；区间内最新 N 条按时间正序返回 |
+| GET /api/history/{device_id} | from_ts/to_ts 含边界，limit 1–10000；默认选区间内最新 N 条，earliest=true 选最早 N 条，均按时间正序返回 |
 | GET /api/export/{device_id} | 最近最多 10000 条 CSV |
 | POST /api/alerts/{id}/ack | 确认 open，重复确认/不存在返回 404 |
 | GET /api/alerts/{id}/audit | 变更日志 |
@@ -72,6 +72,8 @@ stateDiagram-v2
 | GET /docs | OpenAPI 交互文档 |
 
 所有 `/api` 共用 Bearer 认证；WebSocket 令牌放首帧，不放 URL。页面与 API 同源，显式跨来源请求被拒绝。首页与接口结构文档不含业务数据。无令牌只适合 localhost 实验。
+
+告警定位分别读取事件前的最新 120 点和事件后的最早 120 点，以启动周期/序号去重后合并。避免固定时间窗的结果过密时被 limit 截断，导致事件本身消失。两个查询不是同一数据库快照，但样本记录不可变；后到数据不会改变已定位窗口，需重新定位刷新。
 
 ## 参考
 

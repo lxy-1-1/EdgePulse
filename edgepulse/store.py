@@ -122,11 +122,12 @@ class Store:
         with self.connection() as db:
             return [dict(row) for row in db.execute("SELECT * FROM audit WHERE alert_id=? ORDER BY id", (alert_id,))]
 
-    def history(self, device_id, from_ts=0, to_ts=2**53 - 1, limit=600):
+    def history(self, device_id, from_ts=0, to_ts=2**53 - 1, limit=600, earliest=False):
         with self.connection() as db:
-            rows = db.execute("SELECT payload FROM samples WHERE device_id=? AND ts BETWEEN ? AND ? ORDER BY ts DESC,id DESC LIMIT ?",
+            direction = "ASC" if earliest else "DESC"
+            rows = db.execute(f"SELECT payload FROM samples WHERE device_id=? AND ts BETWEEN ? AND ? ORDER BY ts {direction},id {direction} LIMIT ?",
                               (device_id, from_ts, to_ts, min(max(limit, 1), 10000))).fetchall()
-            return [json.loads(row["payload"]) for row in reversed(rows)]
+            return [json.loads(row["payload"]) for row in (rows if earliest else reversed(rows))]
 
     def snapshot(self):
         now = int(time.time() * 1000)

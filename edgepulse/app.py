@@ -64,10 +64,11 @@ def create_app(db_path="data/edgepulse.db", token=None):
 
     @api.get("/history/{device_id}")
     def history(device_id: str, from_ts: int = Query(0, ge=0),
-                to_ts: int = Query(2**53-1, ge=0), limit: int = Query(600, ge=1, le=10000)):
+                to_ts: int = Query(2**53-1, ge=0), limit: int = Query(600, ge=1, le=10000),
+                earliest: bool = False):
         if from_ts > to_ts:
             raise HTTPException(422, "from_ts must be <= to_ts")
-        return store.history(device_id, from_ts, to_ts, limit)
+        return store.history(device_id, from_ts, to_ts, limit, earliest=earliest)
 
     @api.get("/export/{device_id}")
     def export(device_id: str):
